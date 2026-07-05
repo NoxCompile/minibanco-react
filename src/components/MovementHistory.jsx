@@ -6,21 +6,30 @@ export const MovementHistory = () => {
   const { state } = useContext(AuthContext);
   const [movements, setMovements] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [queryError, setQueryError] = useState(null); // NUEVO: Captura de errores
 
   useEffect(() => {
     if (!state.user) return;
 
-    // Abrimos el túnel en tiempo real para el historial
-    const unsubscribe = subscribeToMovements(state.user.uid, (data) => {
-      setMovements(data);
-      setLoading(false);
-    });
+    // Modificamos dbService para pasarle un segundo callback que atrape errores
+    const unsubscribe = subscribeToMovements(
+      state.user.uid, 
+      (data) => {
+        setMovements(data);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error en historial:", error);
+        setQueryError("Falta configurar el índice compuesto en Firebase. Revisa la consola (F12) para activarlo.");
+        setLoading(false); // Apagamos la carga para mostrar el error
+      }
+    );
 
-    // Limpieza estricta de la suscripción al desmontar el componente
     return () => unsubscribe();
   }, [state.user]);
 
   if (loading) return <p style={{ color: '#8b949e', fontSize: '0.9rem' }}>Cargando movimientos...</p>;
+  if (queryError) return <div style={{ color: '#f85149', padding: '10px', background: 'rgba(248,81,73,0.1)', borderRadius: '5px', fontSize: '0.9rem', marginTop: '20px' }}>{queryError}</div>;
 
   return (
     <div style={{ marginTop: '30px', padding: '20px', background: '#161b22', borderRadius: '8px', border: '1px solid #30363d' }}>
@@ -33,14 +42,12 @@ export const MovementHistory = () => {
       ) : (
         <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
           {movements.map((mov) => {
-            // Evaluamos de forma reactiva el tipo de movimiento según el usuario logueado
             const esEmisor = mov.emisorUid === state.user.uid;
             const tipo = esEmisor ? 'Envío' : 'Recepción';
             const contraparte = esEmisor ? mov.receiverEmail : mov.emisorEmail;
-            const colorMonto = esEmisor ? '#f85149' : '#3fb950'; // Rojo si envié, Verde si recibí
+            const colorMonto = esEmisor ? '#f85149' : '#3fb950';
             const signo = esEmisor ? '-' : '+';
 
-            // Formatear la fecha de Firestore (evitando errores si el server timestamp es null momentáneamente)
             const fechaFormateada = mov.fecha 
               ? new Date(mov.fecha.seconds * 1000).toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
               : 'Procesando...';
