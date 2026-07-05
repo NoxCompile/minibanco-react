@@ -1,19 +1,6 @@
-// 1. Importación ÚNICA y unificada de todas las herramientas de Firestore
-import { 
-  doc, 
-  onSnapshot, 
-  collection, 
-  query, 
-  where, 
-  getDocs, 
-  runTransaction, 
-  serverTimestamp, 
-  or, 
-  orderBy 
-} from "firebase/firestore";
+import { doc, onSnapshot, collection, query, where, getDocs, runTransaction, serverTimestamp, or, orderBy } from "firebase/firestore";
 import { db } from "../firebase/config";
 
-// --- TÚNEL DE SALDO ---
 export const subscribeToUser = (uid, callback) => {
   const userRef = doc(db, "users", uid);
   return onSnapshot(userRef, (docSnap) => {
@@ -21,23 +8,17 @@ export const subscribeToUser = (uid, callback) => {
   });
 };
 
-// --- MOTOR DE TRANSFERENCIAS ---
 export const executeTransfer = async (senderUid, receiverEmail, amount) => {
-  if (amount <= 0) throw new Error("El monto a transferir debe ser mayor a $0.");
+  if (amount <= 0) throw new Error("El monto debe ser mayor a $0.");
 
   const usersRef = collection(db, "users");
   const q = query(usersRef, where("email", "==", receiverEmail));
   const querySnapshot = await getDocs(q);
 
-  if (querySnapshot.empty) {
-    throw new Error("El correo del destinatario no está registrado en XBank.");
-  }
-
+  if (querySnapshot.empty) throw new Error("Destinatario no registrado en XBank.");
+  
   const receiverUid = querySnapshot.docs[0].id;
-
-  if (senderUid === receiverUid) {
-    throw new Error("Operación denegada: No puedes transferir dinero a tu propia cuenta.");
-  }
+  if (senderUid === receiverUid) throw new Error("No puedes transferir a tu propia cuenta.");
 
   try {
     await runTransaction(db, async (transaction) => {
@@ -45,13 +26,10 @@ export const executeTransfer = async (senderUid, receiverEmail, amount) => {
       const receiverRef = doc(db, "users", receiverUid);
 
       const senderSnap = await transaction.get(senderRef);
-      if (!senderSnap.exists()) throw new Error("La cuenta de origen no existe.");
+      if (!senderSnap.exists()) throw new Error("La cuenta origen no existe.");
       
       const senderData = senderSnap.data();
-      
-      if (senderData.saldo < amount) {
-        throw new Error("Fondos insuficientes para realizar esta operación.");
-      }
+      if (senderData.saldo < amount) throw new Error("Fondos insuficientes.");
 
       const receiverSnap = await transaction.get(receiverRef);
       const receiverData = receiverSnap.data();
@@ -69,37 +47,20 @@ export const executeTransfer = async (senderUid, receiverEmail, amount) => {
         fecha: serverTimestamp(),
       });
     });
-
   } catch (error) {
-    console.error("Transacción abortada:", error);
-    throw error; 
+    throw error;
   }
 };
 
-// --- TÚNEL DE HISTORIAL ---
-// Agregamos "errorCallback" como tercer parámetro
 export const subscribeToMovements = (uid, callback, errorCallback) => {
   const movementsRef = collection(db, "movimientos");
-  
-  const q = query(
-    movementsRef,
-    or(
-      where("emisorUid", "==", uid),
-      where("receptorUid", "==", uid)
-    ),
-    orderBy("fecha", "desc") 
-  );
+  const q = query(movementsRef, or(where("emisorUid", "==", uid), where("receptorUid", "==", uid)), orderBy("fecha", "desc"));
 
-  // Le pasamos el manejador de errores a onSnapshot
-  const unsubscribe = onSnapshot(q, (querySnapshot) => {
+  return onSnapshot(q, (querySnapshot) => {
     const movements = [];
-    querySnapshot.forEach((doc) => {
-      movements.push({ id: doc.id, ...doc.data() });
-    });
+    querySnapshot.forEach((doc) => movements.push({ id: doc.id, ...doc.data() }));
     callback(movements);
   }, (error) => {
     if (errorCallback) errorCallback(error);
   });
-
-  return unsubscribe;
 };

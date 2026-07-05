@@ -9,65 +9,52 @@ import { MovementHistory } from '../components/MovementHistory';
 export const Dashboard = () => {
   const { state, dispatch } = useContext(AuthContext);
   const navigate = useNavigate();
-
-  // Estados locales para los datos bancarios y la pantalla de carga
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // useEffect se ejecuta cuando el componente se dibuja en pantalla
   useEffect(() => {
-    // 1. Protección de ruta: Si nadie ha iniciado sesión, lo echamos al Login
     if (!state.user) {
       navigate('/');
       return;
     }
-
-    // 2. Abrimos el túnel de datos usando nuestro servicio
     const unsubscribe = subscribeToUser(state.user.uid, (data) => {
       setUserData(data);
-      setLoading(false); // Apagamos la pantalla de carga al recibir los datos
+      setLoading(false);
     });
+    return () => unsubscribe();
+  }, [state.user, navigate]);
 
-    // 3. LA REGLA DE ORO: Función de limpieza
-    // Cuando el usuario cambie de pantalla o cierre sesión, apagamos el túnel.
-    return () => {
-      unsubscribe();
-    };
-  }, [state.user, navigate]); // Dependencias del useEffect
-
-  // Handler para el cierre de sesión (RF5)
   const handleLogout = async () => {
-    try {
-      await logoutUser();
-      dispatch({ type: 'LOGOUT' }); // Limpiamos el cerebro global
-      navigate('/'); // Lo devolvemos al Login
-    } catch (error) {
-      console.error("Error al cerrar sesión", error);
-    }
+    await logoutUser();
+    dispatch({ type: 'LOGOUT' });
+    navigate('/');
   };
 
-  // Estado de carga explícito 
-  if (loading) return <div style={{ textAlign: 'center', marginTop: '50px' }}>Cargando la bóveda...</div>;
+  if (loading) return <div style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '1.1rem' }}>Sincronizando bóveda...</div>;
 
   return (
-    <div style={{ maxWidth: '600px', margin: '50px auto', padding: '20px', border: '1px solid #30363d', borderRadius: '10px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #30363d', paddingBottom: '10px' }}>
-        <h2>Hola, {userData?.nombre}</h2>
-        <button onClick={handleLogout} style={{ padding: '8px 15px', background: '#f85149', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
-          Cerrar Sesión
+    <div className="bank-card" style={{ width: '100%', maxWidth: '700px', margin: '20px auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '18px', marginBottom: '24px' }}>
+        <div>
+          <span style={{ fontSize: '0.85rem', color: 'var(--muted)', textTransform: 'uppercase' }}>Banca Digital</span>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: '700' }}>{userData?.nombre}</h2>
+        </div>
+        <button onClick={handleLogout} style={{ padding: '8px 16px', background: 'rgba(248,81,73,0.1)', color: 'var(--danger)', border: '1px solid rgba(248,81,73,0.2)', borderRadius: '10px', fontWeight: '600', cursor: 'pointer' }}>
+          Salir
         </button>
       </div>
 
-      <div style={{ marginTop: '30px', padding: '30px', background: '#161b22', color: '#58a6ff', borderRadius: '8px', textAlign: 'center' }}>
-        <p style={{ margin: '0', color: '#8b949e', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '1px' }}>Saldo Disponible</p>
-        <h1 style={{ margin: '10px 0', fontSize: '3rem' }}>
+      <div style={{ padding: '24px', background: 'var(--surface-inner)', border: '1px solid var(--border)', borderRadius: '14px', textAlign: 'center', marginBottom: '24px' }}>
+        <p style={{ color: 'var(--muted)', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: '600' }}>Saldo Disponible</p>
+        <h1 style={{ color: 'var(--primary)', fontSize: '2.8rem', fontWeight: '800', marginTop: '6px' }}>
           ${userData?.saldo?.toLocaleString('es-CL')}
         </h1>
       </div>
-      {/* AQUÍ INYECTAMOS EL NUEVO COMPONENTE */}
-    <TransferForm />
-      {/* INYECTAMOS EL HISTORIAL AQUÍ */}
-      <MovementHistory />
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
+        <TransferForm />
+        <MovementHistory />
+      </div>
     </div>
   );
 };

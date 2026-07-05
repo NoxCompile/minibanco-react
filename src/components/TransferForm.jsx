@@ -3,88 +3,47 @@ import { AuthContext } from '../context/AuthContext';
 import { executeTransfer } from '../services/dbService';
 
 export const TransferForm = () => {
-  // Extraemos al usuario actual del "Cerebro" global
   const { state } = useContext(AuthContext);
-  
-  // Estados del formulario controlados por React
   const [email, setEmail] = useState('');
   const [amount, setAmount] = useState('');
-  
-  // Estados de la interfaz
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  // Handlers nombrados
-  const handleEmailChange = (e) => setEmail(e.target.value);
-  const handleAmountChange = (e) => setAmount(e.target.value);
-
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Regla de oro de la SPA
-    setError(null);
-    setSuccess(null);
-    setLoading(true);
-
-    // Convertimos el input de texto a un número real
-    const numericAmount = Number(amount);
+    e.preventDefault();
+    setError(null); setSuccess(null); setLoading(true);
 
     try {
-      // Disparamos la transacción atómica
-      await executeTransfer(state.user.uid, email, numericAmount);
-
-      // Si el código llega aquí, la transacción fue impecable
-      setSuccess(`Transferencia de $${numericAmount.toLocaleString('es-CL')} enviada con éxito.`);
-      
-      // Limpiamos los inputs para la siguiente operación
-      setEmail('');
-      setAmount('');
+      await executeTransfer(state.user.uid, email, Number(amount));
+      setSuccess(`Transferencia enviada con éxito.`);
+      setEmail(''); setAmount('');
     } catch (err) {
-      setError(err.message || "Error al procesar la transferencia.");
+      setError(err.message || "Error en la transferencia.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ marginTop: '30px', padding: '20px', background: '#1c2333', borderRadius: '8px' }}>
-      <h3 style={{ marginTop: 0, color: '#7c8cff' }}>Transferir Fondos</h3>
+    <div style={{ padding: '20px', background: 'var(--surface-inner)', border: '1px solid var(--border)', borderRadius: '14px' }}>
+      <h3 style={{ color: 'var(--text)', fontSize: '1.05rem', marginBottom: '16px', fontWeight: '600' }}>Nueva Transferencia</h3>
+      {error && <div style={{ color: 'var(--danger)', padding: '10px', background: 'rgba(248,81,73,0.05)', borderRadius: '8px', marginBottom: '12px', fontSize: '0.85rem' }}>{error}</div>}
+      {success && <div style={{ color: 'var(--success)', padding: '10px', background: 'rgba(63,185,80,0.05)', borderRadius: '8px', marginBottom: '12px', fontSize: '0.85rem' }}>{success}</div>}
 
-      {/* Zonas de Feedback visual */}
-      {error && <div style={{ color: '#f85149', marginBottom: '10px', fontSize: '0.9rem' }}>{error}</div>}
-      {success && <div style={{ color: '#3fb950', marginBottom: '10px', fontSize: '0.9rem' }}>{success}</div>}
-
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '10px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.9rem', color: '#8b949e' }}>Email del destinatario:</label>
-          <input 
-            type="email" 
-            value={email} 
-            onChange={handleEmailChange} 
-            required 
-            disabled={loading}
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #30363d', background: '#0d1117', color: '#e6edf3' }}
-          />
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div>
+            <label style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>Destinatario (Email)</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={loading} className="bank-input" />
+          </div>
+          <div>
+            <label style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>Monto ($)</label>
+            <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} required min="1" disabled={loading} className="bank-input" />
+          </div>
         </div>
-        
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.9rem', color: '#8b949e' }}>Monto a transferir:</label>
-          <input 
-            type="number" 
-            value={amount} 
-            onChange={handleAmountChange} 
-            required 
-            min="1" 
-            disabled={loading}
-            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #30363d', background: '#0d1117', color: '#e6edf3' }}
-          />
-        </div>
-
-        <button 
-          type="submit" 
-          disabled={loading} 
-          style={{ width: '100%', padding: '10px', background: '#58a6ff', color: '#0d1117', fontWeight: 'bold', border: 'none', borderRadius: '5px', cursor: loading ? 'not-allowed' : 'pointer' }}
-        >
-          {loading ? 'Procesando Transacción...' : 'Enviar Dinero'}
+        <button type="submit" disabled={loading} className="bank-btn bank-btn-primary" style={{ padding: '12px' }}>
+          {loading ? 'Procesando...' : 'Confirmar Envío'}
         </button>
       </form>
     </div>

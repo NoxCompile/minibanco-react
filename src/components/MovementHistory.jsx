@@ -6,61 +6,47 @@ export const MovementHistory = () => {
   const { state } = useContext(AuthContext);
   const [movements, setMovements] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [queryError, setQueryError] = useState(null); // NUEVO: Captura de errores
+  const [queryError, setQueryError] = useState(null);
 
   useEffect(() => {
     if (!state.user) return;
-
-    // Modificamos dbService para pasarle un segundo callback que atrape errores
-    const unsubscribe = subscribeToMovements(
-      state.user.uid, 
-      (data) => {
-        setMovements(data);
-        setLoading(false);
-      },
-      (error) => {
-        console.error("Error en historial:", error);
-        setQueryError("Falta configurar el índice compuesto en Firebase. Revisa la consola (F12) para activarlo.");
-        setLoading(false); // Apagamos la carga para mostrar el error
-      }
+    const unsubscribe = subscribeToMovements(state.user.uid, 
+      (data) => { setMovements(data); setLoading(false); },
+      (error) => { setQueryError("Falta índice compuesto en Firebase."); setLoading(false); }
     );
-
     return () => unsubscribe();
   }, [state.user]);
 
-  if (loading) return <p style={{ color: '#8b949e', fontSize: '0.9rem' }}>Cargando movimientos...</p>;
-  if (queryError) return <div style={{ color: '#f85149', padding: '10px', background: 'rgba(248,81,73,0.1)', borderRadius: '5px', fontSize: '0.9rem', marginTop: '20px' }}>{queryError}</div>;
+  if (loading) return <p style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>Cargando cartola...</p>;
+  if (queryError) return <div style={{ color: 'var(--danger)', fontSize: '0.85rem' }}>{queryError}</div>;
 
   return (
-    <div style={{ marginTop: '30px', padding: '20px', background: '#161b22', borderRadius: '8px', border: '1px solid #30363d' }}>
-      <h3 style={{ marginTop: 0, color: '#58a6ff', borderBottom: '1px solid #30363d', paddingBottom: '10px' }}>
-        Historial de Movimientos
-      </h3>
-
+    <div style={{ padding: '20px', background: 'var(--surface-inner)', border: '1px solid var(--border)', borderRadius: '14px' }}>
+      <h3 style={{ color: 'var(--text)', fontSize: '1.05rem', marginBottom: '14px', fontWeight: '600' }}>Movimientos Recientes</h3>
       {movements.length === 0 ? (
-        <p style={{ color: '#8b949e', textAlign: 'center', margin: '20px 0' }}>No registras movimientos en tu cuenta aún.</p>
+        <p style={{ color: 'var(--muted)', textAlign: 'center', fontSize: '0.9rem' }}>Sin actividad reciente.</p>
       ) : (
-        <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+        <div style={{ maxHeight: '240px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {movements.map((mov) => {
             const esEmisor = mov.emisorUid === state.user.uid;
-            const tipo = esEmisor ? 'Envío' : 'Recepción';
             const contraparte = esEmisor ? mov.receiverEmail : mov.emisorEmail;
-            const colorMonto = esEmisor ? '#f85149' : '#3fb950';
-            const signo = esEmisor ? '-' : '+';
-
-            const fechaFormateada = mov.fecha 
-              ? new Date(mov.fecha.seconds * 1000).toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
-              : 'Procesando...';
+            const color = esEmisor ? 'var(--danger)' : 'var(--success)';
+            const bg = esEmisor ? 'rgba(248,81,73,0.08)' : 'rgba(63,185,80,0.08)';
+            const fecha = mov.fecha ? new Date(mov.fecha.seconds * 1000).toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'Validando...';
 
             return (
-              <div key={mov.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #21262d', fontSize: '0.9rem' }}>
-                <div>
-                  <span style={{ fontWeight: 'bold', color: colorMonto, marginRight: '10px' }}>[{tipo}]</span>
-                  <span style={{ color: '#e6edf3' }}>{contraparte}</span>
-                  <div style={{ fontSize: '0.75rem', color: '#8b949e', marginTop: '2px' }}>{fechaFormateada}</div>
+              <div key={mov.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: '700', padding: '4px 8px', borderRadius: '6px', background: bg, color }}>
+                    {esEmisor ? 'Cargo' : 'Abono'}
+                  </span>
+                  <div>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text)' }}>{contraparte}</p>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{fecha}</span>
+                  </div>
                 </div>
-                <div style={{ fontWeight: 'bold', color: colorMonto, fontSize: '1rem' }}>
-                  {signo}${mov.monto?.toLocaleString('es-CL')}
+                <div style={{ fontWeight: '700', color, fontSize: '1.05rem' }}>
+                  {esEmisor ? '-' : '+'}${mov.monto?.toLocaleString('es-CL')}
                 </div>
               </div>
             );
