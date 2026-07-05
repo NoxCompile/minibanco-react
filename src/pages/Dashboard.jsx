@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { logoutUser } from '../services/authService';
 import { subscribeToUser } from '../services/dbService';
+import { TransferForm } from '../components/TransferForm';
 
 export const Dashboard = () => {
   const { state, dispatch } = useContext(AuthContext);
@@ -62,6 +63,8 @@ export const Dashboard = () => {
           ${userData?.saldo?.toLocaleString('es-CL')}
         </h1>
       </div>
+      {/* AQUÍ INYECTAMOS EL NUEVO COMPONENTE */}
+    <TransferForm />
     </div>
   );
 };
