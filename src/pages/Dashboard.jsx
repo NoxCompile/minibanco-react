@@ -4,6 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import { logoutUser } from '../services/authService';
 import { subscribeToUser } from '../services/dbService';
 import { TransferForm } from '../components/TransferForm';
+import { MovementHistory } from '../components/MovementHistory';
 
 export const Dashboard = () => {
   const { state, dispatch } = useContext(AuthContext);
@@ -65,6 +66,8 @@ export const Dashboard = () => {
       </div>
       {/* AQUÍ INYECTAMOS EL NUEVO COMPONENTE */}
     <TransferForm />
+      {/* INYECTAMOS EL HISTORIAL AQUÍ */}
+      <MovementHistory />
     </div>
   );
 };

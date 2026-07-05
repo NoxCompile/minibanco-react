@@ -79,3 +79,34 @@ export const executeTransfer = async (senderUid, receiverEmail, amount) => {
     throw error; // Lanzamos el error hacia la interfaz visual
   }
 };
+
+import { collection, query, where, or, orderBy, onSnapshot } from "firebase/firestore";
+
+/**
+ * Se suscribe en tiempo real a los movimientos donde el usuario sea emisor O receptor.
+ * Ordenado del más reciente al más antiguo.
+ */
+export const subscribeToMovements = (uid, callback) => {
+  const movementsRef = collection(db, "movimientos");
+  
+  // Construimos la consulta con la condición lógica OR
+  const q = query(
+    movementsRef,
+    or(
+      where("emisorUid", "==", uid),
+      where("receptorUid", "==", uid)
+    ),
+    orderBy("fecha", "desc") // Requisito RF4: Ordenado del más reciente al antiguo
+  );
+
+  // Activamos el listener en tiempo real
+  const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    const movements = [];
+    querySnapshot.forEach((doc) => {
+      movements.push({ id: doc.id, ...doc.data() });
+    });
+    callback(movements);
+  });
+
+  return unsubscribe;
+};
