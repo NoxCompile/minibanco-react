@@ -4,18 +4,16 @@ import { AuthContext } from '../context/AuthContext';
 import { logoutUser } from '../services/authService';
 import { subscribeToUser } from '../services/dbService';
 
-// Importación de los 3 módulos hijos
 import { TransferForm } from '../components/TransferForm';
 import { MovementHistory } from '../components/MovementHistory';
 import { SimulatedActions } from '../components/SimulatedActions';
 
-export const Dashboard = () => {
+export const Dashboard = ({ toggleTheme, theme }) => {
   const { state, dispatch } = useContext(AuthContext);
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Suscripción reactiva al saldo del usuario
   useEffect(() => {
     if (!state.user) {
       navigate('/');
@@ -28,7 +26,6 @@ export const Dashboard = () => {
     return () => unsubscribe();
   }, [state.user, navigate]);
 
-  // Destrucción de sesión
   const handleLogout = async () => {
     try {
       await logoutUser();
@@ -39,11 +36,10 @@ export const Dashboard = () => {
     }
   };
 
-  // Pantalla de carga con los colores de la nueva estética
   if (loading) {
     return (
-      <div style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '1.2rem', textShadow: '0 0 10px var(--primary-glow)' }}>
-        Sincronizando bóveda de cristal...
+      <div style={{ color: 'var(--text-main)', fontWeight: '600', fontSize: '1.2rem' }}>
+        Sincronizando bóveda...
       </div>
     );
   }
@@ -52,7 +48,7 @@ export const Dashboard = () => {
     <div className="glass-panel" style={{ width: '100%', maxWidth: '950px', margin: '30px auto' }}>
       
       {/* Cabecera del Panel */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--glass-border)', paddingBottom: '20px', marginBottom: '28px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '20px', marginBottom: '28px' }}>
         <div>
           <span className="text-muted" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '600' }}>
             Banca Digital Premium
@@ -61,30 +57,34 @@ export const Dashboard = () => {
             {userData?.nombre}
           </h2>
         </div>
-        <button onClick={handleLogout} className="bank-btn btn-danger" style={{ width: 'auto', padding: '10px 20px', fontSize: '0.9rem' }}>
-          Cerrar Sesión
-        </button>
+        
+        {/* Botones de Cabecera */}
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <button onClick={toggleTheme} className="bank-btn" style={{ background: 'var(--input-bg)', color: 'var(--text-main)', border: '1px solid var(--border-color)', width: 'auto', padding: '12px 16px', fontSize: '0.95rem' }}>
+            {theme === 'dark' ? '☀️ Claro' : '🌙 Oscuro'}
+          </button>
+          <button onClick={handleLogout} className="bank-btn btn-danger" style={{ width: 'auto', padding: '12px 20px', fontSize: '0.95rem' }}>
+            Cerrar Sesión
+          </button>
+        </div>
       </div>
 
-      {/* Tarjeta de Saldo Centralizada */}
-      <div style={{ padding: '36px', background: 'rgba(0, 0, 0, 0.4)', border: '1px solid var(--glass-border)', borderRadius: '16px', textAlign: 'center', marginBottom: '32px', boxShadow: 'inset 0 4px 20px rgba(0, 240, 255, 0.03)' }}>
+      {/* Tarjeta de Saldo */}
+      <div style={{ padding: '36px', background: 'var(--input-bg)', border: '1px solid var(--border-color)', borderRadius: '16px', textAlign: 'center', marginBottom: '32px' }}>
         <p className="text-muted" style={{ textTransform: 'uppercase', fontSize: '0.85rem', fontWeight: '600', letterSpacing: '2px' }}>
           Saldo Total Disponible
         </p>
-        <h1 style={{ color: 'var(--primary)', fontSize: '3.6rem', fontWeight: '800', margin: '12px 0', textShadow: '0 0 24px var(--primary-glow)', letterSpacing: '-1px' }}>
+        <h1 style={{ color: 'var(--text-main)', fontSize: '3.6rem', fontWeight: '800', margin: '12px 0', letterSpacing: '-1px' }}>
           ${userData?.saldo?.toLocaleString('es-CL')}
         </h1>
       </div>
 
-      {/* Grilla Modular (Distribución 2 columnas en PC, 1 en móviles) */}
+      {/* Grilla Modular */}
       <div className="dashboard-grid">
-        {/* Columna Izquierda: Acciones Operativas */}
         <div className="grid-column">
           <TransferForm />
           <SimulatedActions />
         </div>
-        
-        {/* Columna Derecha: Registro Visual */}
         <div className="grid-column">
           <MovementHistory />
         </div>

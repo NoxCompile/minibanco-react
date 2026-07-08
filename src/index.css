@@ -1,30 +1,56 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+/* TEMA OSCURO (Por Defecto - Federal Reserve) */
 :root {
-  /* Paleta Americana Institucional - Sobria y de Alta Fidelidad */
-  --bg-color: #0B1120; /* Azul Pizarra Muy Oscuro */
-  --panel-bg: #151E32; /* Azul Federal */
+  --bg-color: #0B1120;
+  --panel-bg: #151E32;
   --border-color: #2A3B5C;
-  --primary: #F8FAFC; /* Blanco Níveo */
-  --accent-red: #991B1B; /* Rojo Carmesí Apagado */
-  --accent-blue: #1E3A8A; /* Azul Corporativo Profundo */
-  
-  --success: #16A34A; /* Verde Dólar */
-  --danger: #DC2626; /* Alerta Roja Suave */
+  --primary: #F8FAFC;
+  --accent-red: #991B1B;
+  --accent-blue: #1E3A8A;
+  --success: #16A34A;
+  --danger: #DC2626;
   --text-main: #F1F5F9;
   --text-muted: #94A3B8;
+  
+  --body-gradient: linear-gradient(135deg, #0A1128 0%, #0B1736 100%);
+  --input-bg: rgba(11, 17, 32, 0.6);
+  --btn-primary-bg: #F1F5F9;
+  --btn-primary-text: #0B1120;
+  --shadow-fx: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* TEMA CLARO (Institucional Diurno) */
+[data-theme='light'] {
+  --bg-color: #F1F5F9;
+  --panel-bg: #FFFFFF;
+  --border-color: #CBD5E1;
+  --primary: #0F172A;
+  --accent-red: #DC2626;
+  --accent-blue: #2563EB;
+  --success: #15803D;
+  --danger: #EF4444;
+  --text-main: #1E293B;
+  --text-muted: #64748B;
+  
+  --body-gradient: none;
+  --input-bg: #F8FAFC;
+  --btn-primary-bg: #1E293B;
+  --btn-primary-text: #FFFFFF;
+  --shadow-fx: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
 * { 
   box-sizing: border-box; 
   margin: 0; 
   padding: 0; 
-  transition: all 0.2s ease-in-out; 
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; 
 }
 
 body {
   font-family: 'Inter', sans-serif;
   background-color: var(--bg-color);
+  background-image: var(--body-gradient);
   color: var(--text-main);
   min-height: 100vh;
   display: flex;
@@ -38,7 +64,7 @@ body {
   border: 1px solid var(--border-color);
   border-top: 4px solid var(--accent-red); 
   border-radius: 20px; 
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-fx);
   padding: 32px; 
 }
 
@@ -60,7 +86,7 @@ body {
 /* Tipografía */
 .panel-title { 
   font-size: 1.15rem; 
-  color: var(--primary); 
+  color: var(--text-main); 
   font-weight: 700; 
   margin-bottom: 24px; 
   text-transform: uppercase;
@@ -73,10 +99,10 @@ body {
 .bank-input {
   width: 100%;
   padding: 16px;
-  background: rgba(11, 17, 32, 0.6);
+  background: var(--input-bg);
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  color: var(--primary);
+  color: var(--text-main);
   font-size: 1rem;
   outline: none;
   margin-top: 8px;
@@ -98,11 +124,11 @@ body {
   letter-spacing: 0.5px;
 }
 .bank-btn-primary { 
-  background: var(--text-main); 
-  color: var(--bg-color); 
+  background: var(--btn-primary-bg); 
+  color: var(--btn-primary-text); 
 }
 .bank-btn-primary:hover:not(:disabled) { 
-  background: #cbd5e1; 
+  opacity: 0.85; 
   transform: translateY(-2px); 
 }
 .btn-success { background: rgba(22, 163, 74, 0.15); color: var(--success); border: 1px solid rgba(22, 163, 74, 0.3); }
@@ -111,7 +137,7 @@ body {
 .btn-danger:hover:not(:disabled) { background: rgba(220, 38, 38, 0.25); }
 .bank-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-/* Historial - Blindaje Anti-Sobreposición (Flexbox Seguro) */
+/* Historial - Blindaje Anti-Sobreposición */
 .history-list { 
   max-height: 400px; 
   overflow-y: auto; 
@@ -127,13 +153,12 @@ body {
 }
 .history-item:last-child { border-bottom: none; }
 
-/* Contenedor izquierdo blindado */
 .history-info {
   display: flex;
   align-items: center;
   gap: 16px;
   flex: 1; 
-  min-width: 0; /* Previene que el texto largo rompa el contenedor */
+  min-width: 0; 
 }
 .history-text {
   display: flex;
@@ -154,19 +179,18 @@ body {
 .contraparte { 
   font-size: 0.95rem; 
   font-weight: 600; 
-  color: var(--primary); 
+  color: var(--text-main); 
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis; /* Corta el correo largo con "..." */
+  text-overflow: ellipsis; 
 }
 .fecha { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
 
-/* El monto ya no será aplastado */
 .history-monto { 
   font-weight: 700; 
   font-size: 1.15rem; 
   text-align: right; 
-  flex-shrink: 0; /* Prohíbe que el monto se encoja o se superponga */
+  flex-shrink: 0; 
 }
 
 /* Controles de Filtro */
@@ -175,7 +199,7 @@ body {
 .filter-btn { 
   flex: 1; 
   padding: 10px; 
-  background: rgba(11, 17, 32, 0.4); 
+  background: var(--input-bg); 
   border: 1px solid var(--border-color); 
   border-radius: 12px; 
   color: var(--text-muted); 
