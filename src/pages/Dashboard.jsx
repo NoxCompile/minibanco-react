@@ -3,8 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { logoutUser } from '../services/authService';
 import { subscribeToUser } from '../services/dbService';
+
+// Importación de los 3 módulos hijos
 import { TransferForm } from '../components/TransferForm';
 import { MovementHistory } from '../components/MovementHistory';
+import { SimulatedActions } from '../components/SimulatedActions';
 
 export const Dashboard = () => {
   const { state, dispatch } = useContext(AuthContext);
@@ -12,6 +15,7 @@ export const Dashboard = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Suscripción reactiva al saldo del usuario
   useEffect(() => {
     if (!state.user) {
       navigate('/');
@@ -24,37 +28,68 @@ export const Dashboard = () => {
     return () => unsubscribe();
   }, [state.user, navigate]);
 
+  // Destrucción de sesión
   const handleLogout = async () => {
-    await logoutUser();
-    dispatch({ type: 'LOGOUT' });
-    navigate('/');
+    try {
+      await logoutUser();
+      dispatch({ type: 'LOGOUT' });
+      navigate('/');
+    } catch (error) {
+      console.error("Error al cerrar sesión", error);
+    }
   };
 
-  if (loading) return <div style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '1.1rem' }}>Sincronizando bóveda...</div>;
+  // Pantalla de carga con los colores de la nueva estética
+  if (loading) {
+    return (
+      <div style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '1.2rem', textShadow: '0 0 10px var(--primary-glow)' }}>
+        Sincronizando bóveda de cristal...
+      </div>
+    );
+  }
 
   return (
-    <div className="bank-card" style={{ width: '100%', maxWidth: '700px', margin: '20px auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '18px', marginBottom: '24px' }}>
+    <div className="glass-panel" style={{ width: '100%', maxWidth: '950px', margin: '30px auto' }}>
+      
+      {/* Cabecera del Panel */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--glass-border)', paddingBottom: '20px', marginBottom: '28px' }}>
         <div>
-          <span style={{ fontSize: '0.85rem', color: 'var(--muted)', textTransform: 'uppercase' }}>Banca Digital</span>
-          <h2 style={{ fontSize: '1.4rem', fontWeight: '700' }}>{userData?.nombre}</h2>
+          <span className="text-muted" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '600' }}>
+            Banca Digital Premium
+          </span>
+          <h2 style={{ fontSize: '1.6rem', fontWeight: '700', marginTop: '4px', color: 'var(--text-main)' }}>
+            {userData?.nombre}
+          </h2>
         </div>
-        <button onClick={handleLogout} style={{ padding: '8px 16px', background: 'rgba(248,81,73,0.1)', color: 'var(--danger)', border: '1px solid rgba(248,81,73,0.2)', borderRadius: '10px', fontWeight: '600', cursor: 'pointer' }}>
-          Salir
+        <button onClick={handleLogout} className="bank-btn btn-danger" style={{ width: 'auto', padding: '10px 20px', fontSize: '0.9rem' }}>
+          Cerrar Sesión
         </button>
       </div>
 
-      <div style={{ padding: '24px', background: 'var(--surface-inner)', border: '1px solid var(--border)', borderRadius: '14px', textAlign: 'center', marginBottom: '24px' }}>
-        <p style={{ color: 'var(--muted)', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: '600' }}>Saldo Disponible</p>
-        <h1 style={{ color: 'var(--primary)', fontSize: '2.8rem', fontWeight: '800', marginTop: '6px' }}>
+      {/* Tarjeta de Saldo Centralizada */}
+      <div style={{ padding: '36px', background: 'rgba(0, 0, 0, 0.4)', border: '1px solid var(--glass-border)', borderRadius: '16px', textAlign: 'center', marginBottom: '32px', boxShadow: 'inset 0 4px 20px rgba(0, 240, 255, 0.03)' }}>
+        <p className="text-muted" style={{ textTransform: 'uppercase', fontSize: '0.85rem', fontWeight: '600', letterSpacing: '2px' }}>
+          Saldo Total Disponible
+        </p>
+        <h1 style={{ color: 'var(--primary)', fontSize: '3.6rem', fontWeight: '800', margin: '12px 0', textShadow: '0 0 24px var(--primary-glow)', letterSpacing: '-1px' }}>
           ${userData?.saldo?.toLocaleString('es-CL')}
         </h1>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
-        <TransferForm />
-        <MovementHistory />
+      {/* Grilla Modular (Distribución 2 columnas en PC, 1 en móviles) */}
+      <div className="dashboard-grid">
+        {/* Columna Izquierda: Acciones Operativas */}
+        <div className="grid-column">
+          <TransferForm />
+          <SimulatedActions />
+        </div>
+        
+        {/* Columna Derecha: Registro Visual */}
+        <div className="grid-column">
+          <MovementHistory />
+        </div>
       </div>
+
     </div>
   );
 };

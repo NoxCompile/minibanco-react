@@ -64,3 +64,41 @@ export const subscribeToMovements = (uid, callback, errorCallback) => {
     if (errorCallback) errorCallback(error);
   });
 };
+// --- MOTOR DE SIMULACIÓN (BONUS) ---
+export const simulateTransaction = async (uid, email, type, amount) => {
+  if (amount <= 0) throw new Error("El monto debe ser mayor a $0.");
+
+  try {
+    await runTransaction(db, async (transaction) => {
+      const userRef = doc(db, "users", uid);
+      const userSnap = await transaction.get(userRef);
+      if (!userSnap.exists()) throw new Error("La cuenta no existe.");
+      
+      const userData = userSnap.data();
+      let newSaldo = userData.saldo;
+
+      if (type === 'deposito') {
+        newSaldo += amount;
+      } else if (type === 'retiro') {
+        if (userData.saldo < amount) throw new Error("Fondos insuficientes para el retiro.");
+        newSaldo -= amount;
+      }
+
+      // Actualizar saldo
+      transaction.update(userRef, { saldo: newSaldo });
+
+      // Registrar movimiento con el "Sistema Central"
+      const newMovementRef = doc(collection(db, "movimientos"));
+      transaction.set(newMovementRef, {
+        emisorUid: type === 'retiro' ? uid : 'sistema_central',
+        emisorEmail: type === 'retiro' ? email : 'Cajero Automático',
+        receptorUid: type === 'deposito' ? uid : 'sistema_central',
+        receptorEmail: type === 'deposito' ? email : 'Cajero Automático',
+        monto: amount,
+        fecha: serverTimestamp(),
+      });
+    });
+  } catch (error) {
+    throw error;
+  }
+};
