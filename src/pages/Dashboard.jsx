@@ -8,7 +8,7 @@ import { TransferForm } from '../components/TransferForm';
 import { MovementHistory } from '../components/MovementHistory';
 import { SimulatedActions } from '../components/SimulatedActions';
 
-export const Dashboard = ({ toggleTheme, theme }) => {
+export const Dashboard = ({ changeTheme, theme }) => {
   const { state, dispatch } = useContext(AuthContext);
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
@@ -47,7 +47,6 @@ export const Dashboard = ({ toggleTheme, theme }) => {
   return (
     <div className="glass-panel" style={{ width: '100%', maxWidth: '950px', margin: '30px auto' }}>
       
-      {/* Cabecera del Panel */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '20px', marginBottom: '28px' }}>
         <div>
           <span className="text-muted" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '600' }}>
@@ -58,18 +57,22 @@ export const Dashboard = ({ toggleTheme, theme }) => {
           </h2>
         </div>
         
-        {/* Botones de Cabecera */}
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <button onClick={toggleTheme} className="bank-btn" style={{ background: 'var(--input-bg)', color: 'var(--text-main)', border: '1px solid var(--border-color)', width: 'auto', padding: '12px 16px', fontSize: '0.95rem' }}>
-            {theme === 'dark' ? '☀️ Claro' : '🌙 Oscuro'}
-          </button>
+          <select 
+            className="theme-select"
+            value={theme}
+            onChange={(e) => changeTheme(e.target.value)}
+          >
+            <option value="dark">Tema: Oscuro</option>
+            <option value="light">Tema: Claro</option>
+          </select>
+
           <button onClick={handleLogout} className="bank-btn btn-danger" style={{ width: 'auto', padding: '12px 20px', fontSize: '0.95rem' }}>
             Cerrar Sesión
           </button>
         </div>
       </div>
 
-      {/* Tarjeta de Saldo */}
       <div style={{ padding: '36px', background: 'var(--input-bg)', border: '1px solid var(--border-color)', borderRadius: '16px', textAlign: 'center', marginBottom: '32px' }}>
         <p className="text-muted" style={{ textTransform: 'uppercase', fontSize: '0.85rem', fontWeight: '600', letterSpacing: '2px' }}>
           Saldo Total Disponible
@@ -79,7 +82,6 @@ export const Dashboard = ({ toggleTheme, theme }) => {
         </h1>
       </div>
 
-      {/* Grilla Modular */}
       <div className="dashboard-grid">
         <div className="grid-column">
           <TransferForm />

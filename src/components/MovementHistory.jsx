@@ -7,11 +7,9 @@ export const MovementHistory = () => {
   const [movements, setMovements] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Variables de estado para los filtros
   const [filterType, setFilterType] = useState('all'); 
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Suscripción a Firebase
   useEffect(() => {
     if (!state.user) return;
     const unsubscribe = subscribeToMovements(state.user.uid, 
@@ -21,7 +19,6 @@ export const MovementHistory = () => {
     return () => unsubscribe();
   }, [state.user]);
 
-  // Lógica de filtrado en tiempo real
   const filteredMovements = movements.filter(mov => {
     const esEmisor = mov.emisorUid === state.user.uid;
     const contraparte = esEmisor ? mov.receptorEmail : mov.emisorEmail;
@@ -36,10 +33,9 @@ export const MovementHistory = () => {
   if (loading) return <p className="text-muted">Cargando cartola...</p>;
 
   return (
-    <div className="glass-panel">
+    <div className="glass-panel" style={{ height: '100%' }}>
       <h3 className="panel-title">Movimientos Recientes</h3>
       
-      {/* Controles de Filtro */}
       <div className="filter-controls">
         <input 
           type="text" 
@@ -71,8 +67,6 @@ export const MovementHistory = () => {
 
             return (
               <div key={mov.id} className="history-item">
-                
-                {/* Bloque Izquierdo: Insignia y Textos truncados */}
                 <div className="history-info">
                   <div className="badge" style={{ background: bgBadge, color: colorBadge }}>
                     {esEmisor ? 'Cargo' : 'Abono'}
@@ -82,12 +76,9 @@ export const MovementHistory = () => {
                     <div className="fecha">{fecha}</div>
                   </div>
                 </div>
-                
-                {/* Bloque Derecho: Monto protegido de compresión */}
                 <div className="history-monto" style={{ color: colorMonto }}>
                   {esEmisor ? '-' : '+'}${mov.monto?.toLocaleString('es-CL')}
                 </div>
-                
               </div>
             );
           })}

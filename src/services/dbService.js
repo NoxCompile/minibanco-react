@@ -15,7 +15,7 @@ export const executeTransfer = async (senderUid, receiverEmail, amount) => {
   const q = query(usersRef, where("email", "==", receiverEmail));
   const querySnapshot = await getDocs(q);
 
-  if (querySnapshot.empty) throw new Error("Destinatario no registrado en XBank.");
+  if (querySnapshot.empty) throw new Error("Destinatario no registrado.");
   
   const receiverUid = querySnapshot.docs[0].id;
   if (senderUid === receiverUid) throw new Error("No puedes transferir a tu propia cuenta.");
@@ -64,7 +64,7 @@ export const subscribeToMovements = (uid, callback, errorCallback) => {
     if (errorCallback) errorCallback(error);
   });
 };
-// --- MOTOR DE SIMULACIÓN (BONUS) ---
+
 export const simulateTransaction = async (uid, email, type, amount) => {
   if (amount <= 0) throw new Error("El monto debe ser mayor a $0.");
 
@@ -84,10 +84,8 @@ export const simulateTransaction = async (uid, email, type, amount) => {
         newSaldo -= amount;
       }
 
-      // Actualizar saldo
       transaction.update(userRef, { saldo: newSaldo });
 
-      // Registrar movimiento con el "Sistema Central"
       const newMovementRef = doc(collection(db, "movimientos"));
       transaction.set(newMovementRef, {
         emisorUid: type === 'retiro' ? uid : 'sistema_central',

@@ -27,11 +27,11 @@ export const SimulatedActions = () => {
   };
 
   return (
-    <div className="glass-panel">
+    <div className="glass-panel" style={{ padding: '24px' }}>
       <h3 className="panel-title">Cajero Automático (Simulador)</h3>
       {error && <div className="error-alert">{error}</div>}
       
-      <div style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', gap: '16px', flexDirection: 'column' }}>
         <input 
           type="number" 
           className="bank-input" 
@@ -40,7 +40,7 @@ export const SimulatedActions = () => {
           onChange={(e) => setAmount(e.target.value)} 
           disabled={loading}
         />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <button className="bank-btn btn-success" onClick={() => handleAction('deposito')} disabled={loading}>
             + Depositar
           </button>

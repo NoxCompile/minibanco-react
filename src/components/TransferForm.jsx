@@ -26,23 +26,23 @@ export const TransferForm = () => {
   };
 
   return (
-    <div style={{ padding: '20px', background: 'var(--surface-inner)', border: '1px solid var(--border)', borderRadius: '14px' }}>
-      <h3 style={{ color: 'var(--text)', fontSize: '1.05rem', marginBottom: '16px', fontWeight: '600' }}>Nueva Transferencia</h3>
-      {error && <div style={{ color: 'var(--danger)', padding: '10px', background: 'rgba(248,81,73,0.05)', borderRadius: '8px', marginBottom: '12px', fontSize: '0.85rem' }}>{error}</div>}
-      {success && <div style={{ color: 'var(--success)', padding: '10px', background: 'rgba(63,185,80,0.05)', borderRadius: '8px', marginBottom: '12px', fontSize: '0.85rem' }}>{success}</div>}
+    <div className="glass-panel" style={{ padding: '24px' }}>
+      <h3 className="panel-title">Nueva Transferencia</h3>
+      {error && <div className="error-alert">{error}</div>}
+      {success && <div style={{ color: 'var(--success)', padding: '14px', background: 'rgba(22, 163, 74, 0.1)', borderRadius: '12px', marginBottom: '16px', fontSize: '0.9rem', textAlign: 'center', fontWeight: '500' }}>{success}</div>}
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div>
-            <label style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>Destinatario (Email)</label>
+            <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Destinatario (Email)</label>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={loading} className="bank-input" />
           </div>
           <div>
-            <label style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>Monto ($)</label>
+            <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Monto ($)</label>
             <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} required min="1" disabled={loading} className="bank-input" />
           </div>
         </div>
-        <button type="submit" disabled={loading} className="bank-btn bank-btn-primary" style={{ padding: '12px' }}>
+        <button type="submit" disabled={loading} className="bank-btn bank-btn-primary" style={{ padding: '14px' }}>
           {loading ? 'Procesando...' : 'Confirmar Envío'}
         </button>
       </form>
