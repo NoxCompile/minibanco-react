@@ -4,6 +4,7 @@ import { MovementHistory } from './MovementHistory';
 import { AuthContext } from '../context/AuthContext';
 import * as dbService from '../services/dbService';
 
+// Mockeo la base de datos para no hacer peticiones reales a Firebase durante mis tests
 vi.mock('../services/dbService', () => ({
   subscribeToMovements: vi.fn(),
 }));
@@ -24,7 +25,7 @@ describe('Componente MovementHistory', () => {
   });
 
   it('muestra estado de carga inicialmente', () => {
-    // Simulamos la suscripción sin ejecutar el callback para mantener el estado loading
+    // Simulo que la suscripción está cargando sin devolver datos aún
     dbService.subscribeToMovements.mockImplementation(() => vi.fn());
     
     renderWithProviders(<MovementHistory />, usuarioMock);
@@ -33,7 +34,7 @@ describe('Componente MovementHistory', () => {
   });
 
   it('muestra mensaje cuando no hay movimientos', () => {
-    // Simulamos la respuesta de Firebase con un arreglo vacío
+    // Simulo que Firebase me devuelve un arreglo vacío
     dbService.subscribeToMovements.mockImplementation((uid, callback) => {
       callback([]); 
       return vi.fn(); 
@@ -44,10 +45,11 @@ describe('Componente MovementHistory', () => {
     expect(screen.getByText(/No se encontraron movimientos en los registros/i)).toBeInTheDocument();
   });
 
-  it('renderiza la lista de movimientos diferenciando cargos y abonos', () => {
+  it('renderiza los movimientos respetando el orden recibido (del más reciente al más antiguo)', () => {
+    // Preparo los datos de prueba simulando el orden en que Firebase los entregaría
     const mockMovimientos = [
-      { id: '1', emisorUid: 'u1', emisorEmail: 'test@banco.com', receptorUid: 'u2', receptorEmail: 'destino@banco.com', monto: 15000, fecha: { seconds: 1672531200 } },
-      { id: '2', emisorUid: 'u3', emisorEmail: 'origen@banco.com', receptorUid: 'u1', receptorEmail: 'test@banco.com', monto: 30000, fecha: { seconds: 1672617600 } }
+      { id: '1', emisorUid: 'u1', emisorEmail: 'test@banco.com', receptorUid: 'u2', receptorEmail: 'reciente@banco.com', monto: 15000, fecha: { seconds: 1672617600 } }, // Movimiento Nuevo
+      { id: '2', emisorUid: 'u3', emisorEmail: 'antiguo@banco.com', receptorUid: 'u1', receptorEmail: 'test@banco.com', monto: 30000, fecha: { seconds: 1672531200 } }  // Movimiento Viejo
     ];
 
     dbService.subscribeToMovements.mockImplementation((uid, callback) => {
@@ -57,24 +59,29 @@ describe('Componente MovementHistory', () => {
 
     renderWithProviders(<MovementHistory />, usuarioMock);
 
-    // Verificamos que se renderizan las contrapartes
-    expect(screen.getByText('destino@banco.com')).toBeInTheDocument();
-    expect(screen.getByText('origen@banco.com')).toBeInTheDocument();
+    // Obtengo todos los elementos HTML que contienen las contrapartes usando una clase o testId
+    // En este caso, busco por el texto que contiene el dominio del correo
+    const correosRenderizados = screen.getAllByText(/@banco\.com/);
 
-    // Verificamos las insignias
+    // Verifico que el DOM los haya pintado en el orden exacto del arreglo mockeado
+    expect(correosRenderizados[0]).toHaveTextContent('reciente@banco.com');
+    expect(correosRenderizados[1]).toHaveTextContent('antiguo@banco.com');
+    
+    // Verifico también que las insignias de Cargo/Abono se apliquen bien
     expect(screen.getByText('Cargo')).toBeInTheDocument();
     expect(screen.getByText('Abono')).toBeInTheDocument();
   });
 
-  // BONUS: Verificación de desmontaje de suscripción
   it('llama a la función de limpieza (unsubscribe) al desmontar el componente', () => {
+    // Este test es crucial para evitar fugas de memoria en React
     const mockUnsubscribe = vi.fn();
     dbService.subscribeToMovements.mockReturnValue(mockUnsubscribe);
 
     const { unmount } = renderWithProviders(<MovementHistory />, usuarioMock);
     
-    unmount(); // Forzamos el desmontaje
+    unmount(); // Fuerzo que el componente desaparezca del DOM
 
+    // Compruebo que mi useEffect retornó y ejecutó la limpieza
     expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
   });
 });
