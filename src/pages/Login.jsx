@@ -26,15 +26,19 @@ export const Login = ({ changeTheme, theme }) => {
     setLoading(true);
 
     try {
-      let user;
+let userData;
       if (isRegister) {
         if (!nombre.trim()) throw new Error("El nombre es obligatorio para registrarse.");
-        user = await registerUser(email, password, nombre);
+        userData = await registerUser(email, password, nombre);
       } else {
-        user = await loginUser(email, password);
+        userData = await loginUser(email, password);
       }
       
-      dispatch({ type: 'LOGIN', payload: user });
+      // Aseguramos que hay datos antes de despachar al contexto
+      if (userData) {
+        dispatch({ type: 'LOGIN', payload: userData });
+        navigate('/dashboard');
+      }
       navigate('/dashboard');
     } catch (err) {
       setError(err.message || "Error en la autenticación");
